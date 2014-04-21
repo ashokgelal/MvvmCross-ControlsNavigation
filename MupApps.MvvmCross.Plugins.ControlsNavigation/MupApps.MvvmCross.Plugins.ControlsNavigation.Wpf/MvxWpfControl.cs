@@ -13,7 +13,7 @@ using Cirrious.MvvmCross.Wpf.Views;
 namespace MupApps.MvvmCross.Plugins.ControlsNavigation.Wpf
 {
     public class MvxWpfControl
-        : MvxWpfView, IMvxControl
+        : MvxWpfView, IMvxControl, IDisposable
     {
         public new IMvxViewModel ViewModel
         {
@@ -44,16 +44,16 @@ namespace MupApps.MvvmCross.Plugins.ControlsNavigation.Wpf
 
             _container = Mvx.Resolve<IMvxControlsContainer>();
 
+            _container.Add(this);
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
+        protected virtual void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
         {
-            _container.Add(this);
         }
 
-        private void OnUnloaded(object sender, RoutedEventArgs routedEventArgs)
+        protected virtual void OnUnloaded(object sender, RoutedEventArgs routedEventArgs)
         {
             _container.Remove(this);
         }
@@ -64,6 +64,8 @@ namespace MupApps.MvvmCross.Plugins.ControlsNavigation.Wpf
         }
 
         private EmptyControlBehaviours? _emptyControlBehaviour;
+        private bool _disposed;
+
         public EmptyControlBehaviours EmptyControlBehaviour
         {
             get
@@ -88,6 +90,23 @@ namespace MupApps.MvvmCross.Plugins.ControlsNavigation.Wpf
         public void ChangeEnabled(bool enabled)
         {
             IsEnabled = enabled;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+            if (disposing)
+            {
+                Loaded -= OnLoaded;
+                Unloaded -= OnUnloaded; 
+            }
+            _disposed = true;
         }
     }
 }
